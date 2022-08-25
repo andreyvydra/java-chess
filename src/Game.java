@@ -1,12 +1,14 @@
 import core.Globals;
 import figures.Pawn;
 import figures.Piece;
+import figures.Rook;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Scanner;
 
 public class Game {
-    private boolean isWhite;
+    private boolean isWhite = true;
     private Piece[][] board = new Piece[8][8];
 
     public void start() throws IOException {
@@ -26,6 +28,9 @@ public class Game {
                 if (piece == 'P') {
                     Pawn pawn = new Pawn(coordinates, isWhite);
                     this.board[i][j] = pawn;
+                } else if (piece == 'R') {
+                    Rook rook = new Rook(coordinates, isWhite);
+                    this.board[i][j] = rook;
                 }
             }
         }
@@ -33,7 +38,7 @@ public class Game {
         mainLoop();
     }
 
-    public void mainLoop() throws IOException {
+    public void mainLoop() {
         Scanner reader = new Scanner(System.in);
 
         while (true) {
@@ -63,11 +68,12 @@ public class Game {
             int rowDest = Globals.letters.indexOf(move.charAt(3));
             int lineDest = this.board.length - Integer.parseInt(move.substring(4, 5));
 
-            if (this.board[line][row] != null) {
+
+            if (this.board[line][row] != null && this.board[line][row].getIsWhite() == this.isWhite) {
                 Piece piece = this.board[line][row];
-                if (piece.move(rowDest, lineDest)) {
-                    this.board[lineDest][rowDest] = this.board[line][row];
-                    this.board[line][row] = null;
+                if (piece.move(rowDest, lineDest, this.board)) {
+                    this.isWhite = !this.isWhite;
+                    System.out.println(Arrays.deepToString(this.board));
                 }
             }
 
