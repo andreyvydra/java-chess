@@ -3,20 +3,28 @@ package figures;
 import java.util.Arrays;
 
 public class Piece {
-    int moveX;
-    int moveY;
-    private boolean isWhite = true; // White
+    private boolean isWhite;
     boolean isFirstMove;
-    int[] coordinates = new int[2];
+    public int[] coordinates;
+    int[][] directions;
 
-    Piece () {
-        this.isFirstMove = true;
-    }
+    String letterPiece;
 
     public Piece (int[] coordinates, boolean isWhite) {
         this.coordinates = coordinates;
         this.isWhite = isWhite;
         this.isFirstMove = true;
+    }
+
+    @Override
+    public String toString() {
+        String color;
+        if (this.getIsWhite()) {
+            color = "w";
+        } else {
+            color = "b";
+        }
+        return color + this.letterPiece;
     }
 
     public boolean getIsWhite() {
@@ -45,10 +53,34 @@ public class Piece {
     }
 
     public int[][] getPossibleMoves(Piece[][] board) {
-        return new int[0][0];
+        int[][] possibleMoves = new int[24][2];
+        short counter = 0;
+        for (int[] direction : this.directions) {
+            for (int j = 1; j <= 8; j++) {
+                int line = this.coordinates[0] + direction[0] * j;
+                int row = this.coordinates[1] + direction[1] * j;
+
+                if (!this.checkBoardLimits(row, line)) {
+                    break;
+                }
+                if (board[line][row] == null) {
+                    possibleMoves[counter][0] = line;
+                    possibleMoves[counter][1] = row;
+                } else if (board[line][row].getIsWhite() != this.getIsWhite()) {
+                    possibleMoves[counter][0] = line;
+                    possibleMoves[counter][1] = row;
+                } else {
+                    break;
+                }
+                counter++;
+            }
+        }
+        return possibleMoves;
     }
 
     public boolean checkBoardLimits(int row, int line) {
         return (0 <= row && row <= 7) && (0 <= line && line <= 7);
     }
+
+
 }

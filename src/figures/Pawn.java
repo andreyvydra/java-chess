@@ -9,17 +9,7 @@ public class Pawn extends Piece {
 
     public Pawn(int[] coordinates, boolean isWhite) {
         super(coordinates, isWhite);
-    }
-
-    @Override
-    public String toString() {
-        String color;
-        if (this.getIsWhite()) {
-            color = "w";
-        } else {
-            color = "b";
-        }
-        return color + "P";
+        this.letterPiece = "P";
     }
 
     public int[][] getPossibleMoves(Piece[][] board) {
@@ -29,7 +19,6 @@ public class Pawn extends Piece {
         // Конкатинация двух массивов
         int[][] allMoves = Arrays.copyOf(straightMoves, straightMoves.length + eatMoves.length);
         System.arraycopy(eatMoves, 0, allMoves, straightMoves.length, eatMoves.length);
-        System.out.println(Arrays.deepToString(allMoves));
         return allMoves;
     }
 
