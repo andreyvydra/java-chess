@@ -3,7 +3,7 @@ package figures;
 import java.util.Arrays;
 
 public class Piece {
-    private boolean isWhite;
+    private final boolean isWhite;
     boolean isFirstMove;
     public int[] coordinates;
     int[][] directions;
@@ -31,13 +31,13 @@ public class Piece {
         return this.isWhite;
     }
 
-    public boolean move(int rowDest, int lineDest, Piece[][] board) {
+    public boolean move(int rowDest, int colDest, Piece[][] board) {
 
-        if (!this.checkBoardLimits(rowDest, lineDest)) {
+        if (this.outOfBoardLimits(rowDest, colDest)) {
             return false;
         }
 
-        int[] destPoint = {lineDest, rowDest};
+        int[] destPoint = {rowDest, colDest};
 
         // Проверка на отсутствие вхождения клетки в возможные ходы
         if (Arrays.stream(this.getPossibleMoves(board)).noneMatch(x -> Arrays.equals(x, destPoint))) {
@@ -45,30 +45,32 @@ public class Piece {
         }
 
         this.isFirstMove = false;
-        board[lineDest][rowDest] = this; // Смена фигур на поле
+        board[rowDest][colDest] = this; // Смена фигур на поле
         board[this.coordinates[0]][this.coordinates[1]] = null;
-        this.coordinates[0] = lineDest;
-        this.coordinates[1] = rowDest;
+        this.coordinates[0] = rowDest;
+        this.coordinates[1] = colDest;
         return true;
     }
 
     public int[][] getPossibleMoves(Piece[][] board) {
         int[][] possibleMoves = new int[24][2];
-        short counter = 0;
+        byte counter = 0;
         for (int[] direction : this.directions) {
             for (int j = 1; j <= 8; j++) {
-                int line = this.coordinates[0] + direction[0] * j;
-                int row = this.coordinates[1] + direction[1] * j;
+                int row = this.coordinates[0] + direction[0] * j;
+                int col = this.coordinates[1] + direction[1] * j;
 
-                if (!this.checkBoardLimits(row, line)) {
+                if (this.outOfBoardLimits(row, col)) {
                     break;
                 }
-                if (board[line][row] == null) {
-                    possibleMoves[counter][0] = line;
-                    possibleMoves[counter][1] = row;
-                } else if (board[line][row].getIsWhite() != this.getIsWhite()) {
-                    possibleMoves[counter][0] = line;
-                    possibleMoves[counter][1] = row;
+                if (board[row][col] == null) {
+                    possibleMoves[counter][0] = row;
+                    possibleMoves[counter][1] = col;
+                } else if (board[row][col].getIsWhite() != this.getIsWhite()) {
+                    possibleMoves[counter][0] = row;
+                    possibleMoves[counter][1] = col;
+                    counter++;
+                    break;
                 } else {
                     break;
                 }
@@ -78,8 +80,8 @@ public class Piece {
         return possibleMoves;
     }
 
-    public boolean checkBoardLimits(int row, int line) {
-        return (0 <= row && row <= 7) && (0 <= line && line <= 7);
+    public boolean outOfBoardLimits(int row, int col) {
+        return (0 > row || row > 7) || (0 > col || col > 7);
     }
 
 

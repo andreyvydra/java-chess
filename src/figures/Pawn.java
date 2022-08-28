@@ -27,19 +27,19 @@ public class Pawn extends Piece {
         int coefficientColor = this.getColorCoefficient();
 
         // Проверка на отсутствие фигуры и первого хода
-        int lineDest = this.coordinates[0] + this.longMoveY * coefficientColor;
-        int rowDest = this.coordinates[1];
-        Piece piece = board[lineDest][rowDest];
+        int rowDest = this.coordinates[0] + this.longMoveY * coefficientColor;
+        int colDest = this.coordinates[1];
+        Piece piece = board[rowDest][colDest];
         if (this.isFirstMove && piece == null) {
-            moves[0][0] = lineDest;
-            moves[0][1] = rowDest;
+            moves[0][0] = rowDest;
+            moves[0][1] = colDest;
         }
 
-        lineDest = this.coordinates[0] + coefficientColor; // rowDest остается таким же
-        piece = board[lineDest][rowDest];
+        rowDest = this.coordinates[0] + coefficientColor; // rowDest остается таким же
+        piece = board[rowDest][colDest];
         if (piece == null) {
-            moves[1][0] = lineDest;
-            moves[1][1] = rowDest;
+            moves[1][0] = rowDest;
+            moves[1][1] = colDest;
         }
 
         return moves;
@@ -49,25 +49,25 @@ public class Pawn extends Piece {
         int[][] moves = new int[2][2]; // Только 2 хода, чтобы съесть
         int coefficientColor = this.getColorCoefficient();
 
-        int line = this.coordinates[0];
-        int row = this.coordinates[1];
+        int row = this.coordinates[0];
+        int col = this.coordinates[1];
 
-        int lineDest = line + coefficientColor;
         int rowDest = row + coefficientColor;
-        if (lineDest >= 0 && lineDest <= 7 && rowDest >= 0 && rowDest <= 7) {
-            Piece piece = board[lineDest][rowDest];
+        int colDest = col + coefficientColor;
+        if (rowDest >= 0 && rowDest <= 7 && colDest >= 0 && colDest <= 7) {
+            Piece piece = board[rowDest][colDest];
             if (piece != null && piece.getIsWhite() != this.getIsWhite()) {
-                moves[0][0] = lineDest;
-                moves[0][1] = rowDest;
+                moves[0][0] = rowDest;
+                moves[0][1] = colDest;
             }
         }
 
-        rowDest = row - coefficientColor;
-        if (lineDest >= 0 && lineDest <= 7 && rowDest >= 0 && rowDest <= 7) {
-            Piece piece = board[lineDest][rowDest];
+        colDest = col - coefficientColor;
+        if (rowDest >= 0 && rowDest <= 7 && colDest >= 0 && colDest <= 7) {
+            Piece piece = board[rowDest][colDest];
             if (piece != null && piece.getIsWhite() != this.getIsWhite()) {
-                moves[1][0] = lineDest;
-                moves[1][1] = rowDest;
+                moves[1][0] = rowDest;
+                moves[1][1] = colDest;
             }
         }
         return moves;
