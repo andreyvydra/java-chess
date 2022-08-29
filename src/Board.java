@@ -1,4 +1,4 @@
-import figures.Piece;
+import figures.basic.Piece;
 
 public class Board {
     private Piece[][] board;

@@ -1,5 +1,6 @@
 import core.Globals;
 import figures.*;
+import figures.basic.Piece;
 
 import java.util.*;
 
@@ -122,29 +123,31 @@ public class Game {
 
     public boolean isMateForKing(boolean isWhite) {
         King king = this.getKings()[isWhite ? 1 : 0];
-        int[] startKingPosition = king.coordinates;
-        int[][] kingMoves = king.getPossibleMoves(this.board);
+        boolean[][] kingMoves = king.getPossibleMoves(this.board);
         boolean[][] attackedCells = this.getAttackedCells(!isWhite);
+        int[] startKingPosition = king.coordinates;
 
         if (!attackedCells[king.coordinates[0]][king.coordinates[1]]) {
             return false;
         }
 
-        for (int[] kingMove : kingMoves) {
-            if (Arrays.equals(kingMove, new int[]{0, 0})) {
-                continue;
-            }
+        for (int i = 0; i < kingMoves.length; i++) {
+            for (int j = 0; j < kingMoves[0].length; j++) {
+                if (!kingMoves[i][j]) {
+                    continue;
+                }
 
-            int[] curKingCoordinates = king.coordinates;
-            king.coordinates = kingMove;
-            this.board[kingMove[0]][kingMove[1]] = king;
-            this.board[curKingCoordinates[0]][curKingCoordinates[1]] = null;
-            attackedCells = this.getAttackedCells(!isWhite);
+                int[] curKingCoordinates = king.coordinates;
+                king.coordinates = new int[]{i, j};
+                this.board[i][j] = king;
+                this.board[curKingCoordinates[0]][curKingCoordinates[1]] = null;
+                attackedCells = this.getAttackedCells(!isWhite);
 
-            if (!attackedCells[kingMove[0]][kingMove[1]]) {
-                this.board[startKingPosition[0]][startKingPosition[1]] = king;
-                this.board[kingMove[0]][kingMove[1]] = null;
-                return false;
+                if (!attackedCells[i][j]) {
+                    this.board[startKingPosition[0]][startKingPosition[1]] = king;
+                    this.board[i][j] = null;
+                    return false;
+                }
             }
         }
 
@@ -156,9 +159,21 @@ public class Game {
         for (Piece[] row: this.board) {
             for (Piece piece: row) {
                 if (piece != null && piece.getIsWhite() == isWhite) {
-                    for (int[] move : piece.getPossibleMoves(this.board)) {
-                        attackedCells[move[0]][move[1]] = true;
+                    boolean[][] possibleMoves = piece.getPossibleMoves(this.board);
+                    if (piece instanceof Pawn) { // Pawn может атаковать только клетки, которые она съедает
+                        boolean[][] pawnMoves = ((Pawn) piece).getPredictableEatMoves(this.board);
+                        for (int i = 0; i < possibleMoves.length; i++) {
+                            System.arraycopy(pawnMoves[i], 0, possibleMoves[i], 0, possibleMoves[0].length);
+                        }
                     }
+                    for (int i = 0; i < possibleMoves.length; i++) {
+                        for (int j = 0; j < possibleMoves[0].length; j++) {
+                            if (possibleMoves[i][j]) {
+                                attackedCells[i][j] = true;
+                            }
+                        }
+                    }
+
                 }
             }
         }
