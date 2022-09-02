@@ -67,52 +67,107 @@ public class Game {
         Scanner reader = new Scanner(System.in);
 
         while (true) {
-            System.out.println("\b\b\b\b\b");
-            System.out.println(Globals.outsideBoard);
-            for (int i = 0; i < this.board.length; i++) {
-                System.out.print(this.board.length - i + " ");
-                for (Piece piece : this.board[i]) {
-                    if (piece != null) {
-                        System.out.print("| " + piece + " ");
-                    } else {
-                        System.out.print("|    ");
+            try {
+
+                System.out.println("\b\b\b\b\b");
+                System.out.println(Globals.outsideBoard);
+                for (int i = 0; i < this.board.length; i++) {
+                    System.out.print(this.board.length - i + " ");
+                    for (Piece piece : this.board[i]) {
+                        if (piece != null) {
+                            System.out.print("| " + piece + " ");
+                        } else {
+                            System.out.print("|    ");
+                        }
+                    }
+                    System.out.println("|");
+                    if (i != this.board.length - 1) {
+                        System.out.println(Globals.insideBoard);
                     }
                 }
-                System.out.println("|");
-                if (i != this.board.length - 1) {
-                    System.out.println(Globals.insideBoard);
+                System.out.println(Globals.outsideBoard);
+                System.out.println(Globals.lettersUnderBoard);
+                System.out.print("Введите ваш ход (пример: e2 e4): ");
+                String move = reader.nextLine().strip();
+
+                if (Objects.equals(move.toLowerCase(), "00") || Objects.equals(move.toLowerCase(), "oo")) {
+                    if (shortCastle()) {
+                        this.isWhite = !this.isWhite;
+                    }
+                    continue;
+                } else if (Objects.equals(move.toLowerCase(), "000") || Objects.equals(move.toLowerCase(), "ooo")) {
+                    if (longCastle()) {
+                        this.isWhite = !this.isWhite;
+                    }
+                    continue;
+                }
+                int col = Globals.letters.indexOf(move.charAt(0));
+                int row = this.board.length - Integer.parseInt(move.substring(1, 2));
+                int colDest = Globals.letters.indexOf(move.charAt(3));
+                int rowDest = this.board.length - Integer.parseInt(move.substring(4, 5));
+
+                Piece piece = this.board[row][col];
+                if ((piece != null && piece.getIsWhite() == this.isWhite) &&
+                        !this.isKingAttacked(true) && !this.isKingAttacked(false)) {
+                    System.out.println(4);
+                    if (piece.move(rowDest, colDest, this.board)) {
+                        this.isWhite = !this.isWhite;
+                    }
+                } else if ((this.isKingAttacked(true) || this.isKingAttacked(false)) &&
+                        piece != null && piece.getIsWhite() == this.isWhite) {
+                    if (this.escapeCheck(piece, rowDest, colDest)) {
+                        this.isWhite = !this.isWhite;
+                    }
+                }
+                String res = checkMate();
+                if (!Objects.equals(res, "Draw")) {
+                    System.out.println(res);
+                    break;
+                } catch (Exception exc){
+                    System.out.println(Globals.incorrectInput);
                 }
             }
-            System.out.println(Globals.outsideBoard);
-            System.out.println(Globals.lettersUnderBoard);
-            System.out.print("Введите ваш ход (пример: e2 e4): ");
-            String move = reader.nextLine();
-
-            int col = Globals.letters.indexOf(move.charAt(0));
-            int row = this.board.length - Integer.parseInt(move.substring(1, 2));
-            int colDest = Globals.letters.indexOf(move.charAt(3));
-            int rowDest = this.board.length - Integer.parseInt(move.substring(4, 5));
-
-            Piece piece = this.board[row][col];
-            if ((piece != null && piece.getIsWhite() == this.isWhite) &&
-                    !this.isKingAttacked(true) && !this.isKingAttacked(false)) {
-                System.out.println(4);
-                if (piece.move(rowDest, colDest, this.board)) {
-                    this.isWhite = !this.isWhite;
-                }
-            } else if ((this.isKingAttacked(true) || this.isKingAttacked(false)) &&
-                    piece != null && piece.getIsWhite() == this.isWhite) {
-                if (this.escapeCheck(piece, rowDest, colDest)) {
-                    this.isWhite = !this.isWhite;
-                }
-            }
-            String res = checkMate();
-            if (!Objects.equals(res, "Draw")) {
-                System.out.println(res);
-                break;
-            }
-
         }
+    }
+
+    public boolean shortCastle() {
+        int kingRow = this.isWhite ? 7 : 0;
+        if (this.board[kingRow][5] == null && this.board[kingRow][6] == null) {
+            Piece rook = this.board[kingRow][7];
+            Piece king = this.board[kingRow][4];
+            if (rook instanceof Rook && king instanceof King) {
+                if (rook.isFirstMove && king.isFirstMove) {
+                    rook.coordinates = new int[]{kingRow, 5};
+                    king.coordinates = new int[]{kingRow, 6};
+                    this.board[kingRow][4] = null;
+                    this.board[kingRow][7] = null;
+                    this.board[kingRow][5] = rook;
+                    this.board[kingRow][6] = king;
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public boolean longCastle() {
+        int kingRow = this.isWhite ? 7 : 0;
+        if (this.board[kingRow][1] == null && this.board[kingRow][2] == null && this.board[kingRow][3] == null) {
+            Piece rook = this.board[kingRow][0];
+            Piece king = this.board[kingRow][4];
+            if (rook instanceof Rook && king instanceof King) {
+                if (rook.isFirstMove && king.isFirstMove) {
+                    rook.coordinates = new int[]{kingRow, 5};
+                    king.coordinates = new int[]{kingRow, 6};
+                    this.board[kingRow][0] = null;
+                    this.board[kingRow][4] = null;
+                    this.board[kingRow][2] = king;
+                    this.board[kingRow][3] = rook;
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     public String checkMate() {
