@@ -93,10 +93,16 @@ public class Game {
             int colDest = Globals.letters.indexOf(move.charAt(3));
             int rowDest = this.board.length - Integer.parseInt(move.substring(4, 5));
 
-
-            if (this.board[row][col] != null && this.board[row][col].getIsWhite() == this.isWhite) {
-                Piece piece = this.board[row][col];
+            Piece piece = this.board[row][col];
+            if ((piece != null && piece.getIsWhite() == this.isWhite) &&
+                    !this.isKingAttacked(true) && !this.isKingAttacked(false)) {
+                System.out.println(4);
                 if (piece.move(rowDest, colDest, this.board)) {
+                    this.isWhite = !this.isWhite;
+                }
+            } else if ((this.isKingAttacked(true) || this.isKingAttacked(false)) &&
+                    piece != null && piece.getIsWhite() == this.isWhite) {
+                if (this.escapeCheck(piece, rowDest, colDest)) {
                     this.isWhite = !this.isWhite;
                 }
             }
@@ -121,14 +127,61 @@ public class Game {
         return "Draw";
     }
 
+    public boolean isKingAttacked(boolean isWhite) {
+        King king = this.getKings()[isWhite ? 1 : 0];
+        boolean[][] attackedCells = this.getAttackedCells(!isWhite);
+        return attackedCells[king.coordinates[0]][king.coordinates[1]];
+    }
+
+    public boolean escapeCheck(Piece piece, int rowDest, int colDest) {
+        if (!piece.getPossibleMoves(this.board)[rowDest][colDest]) {
+            return false;
+        }
+
+        int[] startPos = piece.coordinates;
+        this.board[startPos[0]][startPos[1]] = null;
+        this.board[rowDest][colDest] = piece;
+        piece.coordinates = new int[]{rowDest, colDest};
+        if (this.isKingAttacked(piece.getIsWhite())) {
+            this.board[rowDest][colDest] = null;
+            this.board[startPos[0]][startPos[1]] = piece;
+            piece.coordinates = startPos;
+            return false;
+        }
+        return true;
+    }
+
     public boolean isMateForKing(boolean isWhite) {
         King king = this.getKings()[isWhite ? 1 : 0];
         boolean[][] kingMoves = king.getPossibleMoves(this.board);
-        boolean[][] attackedCells = this.getAttackedCells(!isWhite);
+        boolean[][] attackedCells;
         int[] startKingPosition = king.coordinates;
 
-        if (!attackedCells[king.coordinates[0]][king.coordinates[1]]) {
+        if (!this.isKingAttacked(isWhite)) {
             return false;
+        }
+        for (Piece[] pieces : this.board) {
+            for (Piece piece : pieces) {
+                if (piece != null) {
+                    int[] startPos = piece.coordinates;
+                    boolean[][] possibleMoves = piece.getPossibleMoves(this.board);
+                    for (int i = 0; i < possibleMoves.length; i++) {
+                        for (int j = 0; j < possibleMoves.length; j++) {
+                            if (possibleMoves[i][j]) {
+                                this.board[startPos[0]][startPos[1]] = null;
+                                Piece curPiece = this.board[i][j];
+                                if (!this.getAttackedCells(!isWhite)[king.coordinates[0]][king.coordinates[1]]) {
+                                    this.board[startPos[0]][startPos[1]] = piece;
+                                    this.board[i][j] = curPiece;
+                                    return false;
+                                }
+                                this.board[startPos[0]][startPos[1]] = piece;
+                                this.board[i][j] = curPiece;
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         for (int i = 0; i < kingMoves.length; i++) {
