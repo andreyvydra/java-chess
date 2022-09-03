@@ -101,9 +101,9 @@ public class Game {
                     }
                     continue;
                 }
-                int col = Globals.letters.indexOf(move.charAt(0));
+                int col = Globals.letters.indexOf(move.toLowerCase().charAt(0));
                 int row = this.board.length - Integer.parseInt(move.substring(1, 2));
-                int colDest = Globals.letters.indexOf(move.charAt(3));
+                int colDest = Globals.letters.indexOf(move.toLowerCase().charAt(3));
                 int rowDest = this.board.length - Integer.parseInt(move.substring(4, 5));
 
                 Piece piece = this.board[row][col];
@@ -119,13 +119,15 @@ public class Game {
                         this.isWhite = !this.isWhite;
                     }
                 }
+
                 String res = checkMate();
                 if (!Objects.equals(res, "Draw")) {
                     System.out.println(res);
                     break;
-                } catch (Exception exc){
-                    System.out.println(Globals.incorrectInput);
                 }
+
+            } catch (Exception exc) {
+                System.out.println(Globals.incorrectInput);
             }
         }
     }
@@ -264,8 +266,8 @@ public class Game {
 
     public boolean[][] getAttackedCells(boolean isWhite) {
         boolean[][] attackedCells = new boolean[this.board.length][this.board[0].length];
-        for (Piece[] row: this.board) {
-            for (Piece piece: row) {
+        for (Piece[] row : this.board) {
+            for (Piece piece : row) {
                 if (piece != null && piece.getIsWhite() == isWhite) {
                     boolean[][] possibleMoves = piece.getPossibleMoves(this.board);
                     if (piece instanceof Pawn) { // Pawn может атаковать только клетки, которые она съедает
