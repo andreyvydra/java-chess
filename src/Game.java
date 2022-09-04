@@ -2,17 +2,30 @@ import core.Globals;
 import figures.*;
 import figures.basic.Piece;
 
+import java.awt.event.ActionListener;
+import java.io.IOException;
 import java.util.*;
 
 public class Game {
     private boolean isWhite = true;
     private Piece[][] board;
+    private Frame mainframe;
+    public int colStart;
+    public int rowStart;
+    public int colDest;
+    public int rowDest;
+    public boolean move = false;
+
+    public Piece[][] getBoard() {
+        return board;
+    }
 
     public void start() {
         Scanner reader = new Scanner(System.in);
 
         while (true) {
             this.buildBoard();
+            this.mainframe = new Frame(this);
             this.mainLoop();
             System.out.println("Рестарт игры - r\nЗавершить игру - любая");
             String line = reader.nextLine();
@@ -69,42 +82,47 @@ public class Game {
         while (true) {
             try {
 
-                System.out.println("\b\b\b\b\b");
-                System.out.println(Globals.outsideBoard);
-                for (int i = 0; i < this.board.length; i++) {
-                    System.out.print(this.board.length - i + " ");
-                    for (Piece piece : this.board[i]) {
-                        if (piece != null) {
-                            System.out.print("| " + piece + " ");
-                        } else {
-                            System.out.print("|    ");
-                        }
-                    }
-                    System.out.println("|");
-                    if (i != this.board.length - 1) {
-                        System.out.println(Globals.insideBoard);
-                    }
+//                System.out.println("\b\b\b\b\b");
+//                System.out.println(Globals.outsideBoard);
+//                for (int i = 0; i < this.board.length; i++) {
+//                    System.out.print(this.board.length - i + " ");
+//                    for (Piece piece : this.board[i]) {
+//                        if (piece != null) {
+//                            System.out.print("| " + piece + " ");
+//                        } else {
+//                            System.out.print("|    ");
+//                        }
+//                    }
+//                    System.out.println("|");
+//                    if (i != this.board.length - 1) {
+//                        System.out.println(Globals.insideBoard);
+//                    }
+//                }
+//                System.out.println(Globals.outsideBoard);
+//                System.out.println(Globals.lettersUnderBoard);
+//                System.out.print("Введите ваш ход (пример: e2 e4): ");
+//                String move = reader.nextLine().strip();
+//
+//                if (Objects.equals(move.toLowerCase(), "00") || Objects.equals(move.toLowerCase(), "oo")) {
+//                    if (shortCastle()) {
+//                        this.isWhite = !this.isWhite;
+//                    }
+//                    continue;
+//                } else if (Objects.equals(move.toLowerCase(), "000") || Objects.equals(move.toLowerCase(), "ooo")) {
+//                    if (longCastle()) {
+//                        this.isWhite = !this.isWhite;
+//                    }
+//                    continue;
+//                }
+                System.out.println(this.move);
+                if (!this.move) {
+                    continue;
                 }
-                System.out.println(Globals.outsideBoard);
-                System.out.println(Globals.lettersUnderBoard);
-                System.out.print("Введите ваш ход (пример: e2 e4): ");
-                String move = reader.nextLine().strip();
 
-                if (Objects.equals(move.toLowerCase(), "00") || Objects.equals(move.toLowerCase(), "oo")) {
-                    if (shortCastle()) {
-                        this.isWhite = !this.isWhite;
-                    }
-                    continue;
-                } else if (Objects.equals(move.toLowerCase(), "000") || Objects.equals(move.toLowerCase(), "ooo")) {
-                    if (longCastle()) {
-                        this.isWhite = !this.isWhite;
-                    }
-                    continue;
-                }
-                int col = Globals.letters.indexOf(move.toLowerCase().charAt(0));
-                int row = this.board.length - Integer.parseInt(move.substring(1, 2));
-                int colDest = Globals.letters.indexOf(move.toLowerCase().charAt(3));
-                int rowDest = this.board.length - Integer.parseInt(move.substring(4, 5));
+                int col = this.colStart;
+                int row = this.rowStart;
+                int colDest = this.colDest;
+                int rowDest = this.rowDest;
 
                 Piece piece = this.board[row][col];
                 if ((piece != null && piece.getIsWhite() == this.isWhite) &&
@@ -125,6 +143,13 @@ public class Game {
                     System.out.println(res);
                     break;
                 }
+                this.mainframe.createField(this);
+                this.mainframe.pack();
+                this.colStart = 0;
+                this.colDest = 0;
+                this.rowStart = 0;
+                this.rowDest = 0;
+                this.move = false;
 
             } catch (Exception exc) {
                 System.out.println(Globals.incorrectInput);

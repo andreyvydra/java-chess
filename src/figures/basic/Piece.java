@@ -6,6 +6,7 @@ public abstract class Piece implements PieceInterface {
     public int[] coordinates;
     public String letterPiece;
 
+
     public Piece (int[] coordinates, boolean isWhite) {
         this.coordinates = coordinates;
         this.isWhite = isWhite;

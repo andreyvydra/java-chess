@@ -34,7 +34,8 @@ public class Pawn extends Piece {
         int rowDest = this.coordinates[0] + this.longMoveY * coefficientColor;
         int colDest = this.coordinates[1];
         Piece piece = board[rowDest][colDest];
-        if (this.isFirstMove && piece == null) {
+        Piece piece1 = board[rowDest - coefficientColor][colDest];
+        if (this.isFirstMove && piece == null && piece1 == null) {
             moves[rowDest][colDest] = true;
         }
 
