@@ -2,40 +2,65 @@ import core.Globals;
 import figures.*;
 import figures.basic.Piece;
 
-import java.awt.event.ActionListener;
-import java.io.IOException;
+import javax.swing.*;
 import java.util.*;
 
 public class Game {
     private boolean isWhite = true;
     private Piece[][] board;
     private Frame mainframe;
+    private JFrame restartFrame;
     public int colStart;
     public int rowStart;
     public int colDest;
     public int rowDest;
-    public boolean move = false;
+    private boolean pieceSelected = false;
+    private boolean pointSelected = false;
+
+
+    public Game() {
+        this.buildBoard();
+        this.restartFrame = new JFrame();
+        this.restartFrame.setVisible(false);
+        this.restartFrame.setSize(100, 100);
+        JButton button = new JButton("restart");
+        button.addActionListener(this::start);
+        this.restartFrame.add(button);
+
+        this.mainframe = new Frame(this);
+    }
 
     public Piece[][] getBoard() {
         return board;
     }
 
-    public void start() {
-        Scanner reader = new Scanner(System.in);
+    public boolean isPieceSelected() {
+        return this.pieceSelected;
+    }
 
-        while (true) {
-            this.buildBoard();
-            this.mainframe = new Frame(this);
-            this.mainLoop();
-            System.out.println("Рестарт игры - r\nЗавершить игру - любая");
-            String line = reader.nextLine();
-            if (Objects.equals(line, "r")) {
-                this.isWhite = true;
-                continue;
-            }
-            break;
-        }
+    public boolean isPointSelected() {
+        return this.pointSelected;
+    }
 
+    public void setPieceSelected(boolean pieceSelected) {
+        this.pieceSelected = pieceSelected;
+    }
+
+    public void setPointSelected(boolean pointSelected) {
+        this.pointSelected = pointSelected;
+    }
+
+    public void start(Object e) {
+        this.buildBoard();
+        System.out.println(Arrays.deepToString(this.board));
+        this.restartFrame.setVisible(false);
+        this.restartFrame.setEnabled(false);
+        this.isWhite = true;
+        this.mainframe.setEnabled(true);
+        this.mainframe.setVisible(true);
+        this.mainframe.createField(this);
+        this.mainframe.pack();
+        this.mainLoop();
     }
 
     public void buildBoard() {
@@ -114,8 +139,8 @@ public class Game {
 //                    }
 //                    continue;
 //                }
-                System.out.println(this.move);
-                if (!this.move) {
+                Thread.yield();
+                if (!this.isPieceSelected() || !this.isPointSelected()) {
                     continue;
                 }
 
@@ -127,7 +152,6 @@ public class Game {
                 Piece piece = this.board[row][col];
                 if ((piece != null && piece.getIsWhite() == this.isWhite) &&
                         !this.isKingAttacked(true) && !this.isKingAttacked(false)) {
-                    System.out.println(4);
                     if (piece.move(rowDest, colDest, this.board)) {
                         this.isWhite = !this.isWhite;
                     }
@@ -138,18 +162,20 @@ public class Game {
                     }
                 }
 
+                this.mainframe.createField(this);
+                this.mainframe.pack();
+
+                this.setPieceSelected(false);
+                this.setPointSelected(false);
+
                 String res = checkMate();
                 if (!Objects.equals(res, "Draw")) {
+                    this.restartFrame.setEnabled(true);
+                    this.restartFrame.setVisible(true);
+                    this.restartFrame.pack();
                     System.out.println(res);
                     break;
                 }
-                this.mainframe.createField(this);
-                this.mainframe.pack();
-                this.colStart = 0;
-                this.colDest = 0;
-                this.rowStart = 0;
-                this.rowDest = 0;
-                this.move = false;
 
             } catch (Exception exc) {
                 System.out.println(Globals.incorrectInput);
@@ -244,7 +270,7 @@ public class Game {
         }
         for (Piece[] pieces : this.board) {
             for (Piece piece : pieces) {
-                if (piece != null) {
+                if (piece != null && piece.getIsWhite() == isWhite) {
                     int[] startPos = piece.coordinates;
                     boolean[][] possibleMoves = piece.getPossibleMoves(this.board);
                     for (int i = 0; i < possibleMoves.length; i++) {
@@ -252,6 +278,7 @@ public class Game {
                             if (possibleMoves[i][j]) {
                                 this.board[startPos[0]][startPos[1]] = null;
                                 Piece curPiece = this.board[i][j];
+
                                 if (!this.getAttackedCells(!isWhite)[king.coordinates[0]][king.coordinates[1]]) {
                                     this.board[startPos[0]][startPos[1]] = piece;
                                     this.board[i][j] = curPiece;

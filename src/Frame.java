@@ -3,20 +3,18 @@ import figures.basic.Piece;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
 public class Frame extends JFrame {
 
-    private static JButton[][] board = new JButton[8][8];
+    private JButton[][] board = new JButton[8][8];
     Container contents = getContentPane();
-    ButtonHandle gameClick;
     Game game;
 
     public Frame(Game game) {
+        this.setDefaultCloseOperation(EXIT_ON_CLOSE);
         this.game = game;
-        this.gameClick = new ButtonHandle(game);
         this.contents.setLayout(new BorderLayout());
-        this.setSize(new Dimension(640, 640));
+        this.setPreferredSize(new Dimension(720, 720));
         this.setResizable(false);
         this.setVisible(true);
         this.setTitle("Java chess");
@@ -29,15 +27,15 @@ public class Frame extends JFrame {
         this.contents.removeAll();
         this.board = new JButton[8][8];
         JPanel boardPanel = new JPanel(new GridLayout(8, 8));
-        for (int i = 0; i < game.getBoard().length; i++) {
-            for (int j = 0; j < game.getBoard().length; j++) {
+        for (int i = 0; i < 8; i++) {
+            for (int j = 0; j < 8; j++) {
                 Piece piece = game.getBoard()[i][j];
                 this.board[i][j] = setButton(new int[]{i, j}, piece);
-                this.board[i][j].addActionListener(this.gameClick);
+                this.board[i][j].addActionListener(this::actionPerformed);
                 boardPanel.add(this.board[i][j]);
             }
         }
-        this.contents.add(boardPanel, BorderLayout.CENTER);
+        this.contents.add(boardPanel);
     }
 
     private JButton setButton(int[] coordinate, Piece piece) {
@@ -75,38 +73,28 @@ public class Frame extends JFrame {
 
     private void formatButton(JButton b) {
         b.setSize(80, 80);
-        b.setOpaque(true);
-        b.setContentAreaFilled(true);
         b.setBorderPainted(false);
         b.setVisible(true);
     }
 
-    private static class ButtonHandle implements ActionListener {
-        public Game game;
-        public ButtonHandle(Game game) {
-            super();
-            this.game = game;
-        }
 
-
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            JButton source = (JButton) e.getSource();
-
-            for (int i = 0; i < 8; i++) {
-                for (int j = 0; j < 8; j++) {
-                    if (Frame.board[i][j].equals(source)) {
-                        if (this.game.colStart == 0) {
-                            this.game.colStart = j;
-                            this.game.rowStart = i;
-                        } else {
-                            this.game.colDest = j;
-                            this.game.rowDest = i;
-                            this.game.move = true;
-                        }
+    public void actionPerformed(ActionEvent e) {
+        JButton source = (JButton) e.getSource();
+        for (int i = 0; i < 8; i++) {
+            for (int j = 0; j < 8; j++) {
+                if (this.board[i][j].equals(source)) {
+                    if (!this.game.isPieceSelected() && this.game.getBoard()[i][j] != null) {
+                        this.game.colStart = j;
+                        this.game.rowStart = i;
+                        this.game.setPieceSelected(true);
+                    } else if (this.game.isPieceSelected()){
+                        this.game.colDest = j;
+                        this.game.rowDest = i;
+                        this.game.setPointSelected(true);
                     }
                 }
             }
         }
     }
 }
+
