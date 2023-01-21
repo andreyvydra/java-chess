@@ -2,64 +2,61 @@ import core.Globals;
 import figures.*;
 import figures.basic.Piece;
 
-import javax.swing.*;
 import java.util.*;
 
 public class Game {
     private boolean isWhite = true;
     private Piece[][] board;
-    private Frame mainframe;
-    private JFrame restartFrame;
-    public int colStart;
-    public int rowStart;
-    public int colDest;
-    public int rowDest;
-    private boolean pieceSelected = false;
-    private boolean pointSelected = false;
+    private int colStart;
+    private int rowStart;
+    private int colDest;
+    private int rowDest;
 
 
     public Game() {
         this.buildBoard();
-        this.restartFrame = new JFrame();
-        this.restartFrame.setVisible(false);
-        this.restartFrame.setSize(100, 100);
-        JButton button = new JButton("restart");
-        button.addActionListener(this::start);
-        this.restartFrame.add(button);
-
-        this.mainframe = new Frame(this);
     }
 
     public Piece[][] getBoard() {
         return board;
     }
 
-    public boolean isPieceSelected() {
-        return this.pieceSelected;
+    public int getColStart() {
+        return colStart;
     }
 
-    public boolean isPointSelected() {
-        return this.pointSelected;
+    public int getRowStart() {
+        return rowDest;
     }
 
-    public void setPieceSelected(boolean pieceSelected) {
-        this.pieceSelected = pieceSelected;
+    public int getColDest() {
+        return rowDest;
     }
 
-    public void setPointSelected(boolean pointSelected) {
-        this.pointSelected = pointSelected;
+    public int getRowDest() {
+        return rowDest;
+    }
+
+    public void setColStart(int colStart) {
+        this.colStart = colStart;
+    }
+
+    public void setRowStart(int rowStart) {
+        this.rowStart = rowStart;
+    }
+
+    public void setColDest(int colDest) {
+        this.colDest = colDest;
+    }
+
+    public void setRowDest(int rowDest) {
+        this.rowDest = rowDest;
     }
 
     public void start(Object e) {
         this.buildBoard();
         System.out.println(Arrays.deepToString(this.board));
-        this.restartFrame.setVisible(false);
-        this.restartFrame.setEnabled(false);
         this.isWhite = true;
-        this.mainframe.setEnabled(true);
-        this.mainframe.setVisible(true);
-        this.mainframe.createField(this);
-        this.mainframe.pack();
         this.mainLoop();
     }
 
@@ -106,73 +103,26 @@ public class Game {
 
         while (true) {
             try {
+                this.displayBoard();
 
-//                System.out.println("\b\b\b\b\b");
-//                System.out.println(Globals.outsideBoard);
-//                for (int i = 0; i < this.board.length; i++) {
-//                    System.out.print(this.board.length - i + " ");
-//                    for (Piece piece : this.board[i]) {
-//                        if (piece != null) {
-//                            System.out.print("| " + piece + " ");
-//                        } else {
-//                            System.out.print("|    ");
-//                        }
-//                    }
-//                    System.out.println("|");
-//                    if (i != this.board.length - 1) {
-//                        System.out.println(Globals.insideBoard);
-//                    }
-//                }
-//                System.out.println(Globals.outsideBoard);
-//                System.out.println(Globals.lettersUnderBoard);
-//                System.out.print("Введите ваш ход (пример: e2 e4): ");
-//                String move = reader.nextLine().strip();
-//
-//                if (Objects.equals(move.toLowerCase(), "00") || Objects.equals(move.toLowerCase(), "oo")) {
-//                    if (shortCastle()) {
-//                        this.isWhite = !this.isWhite;
-//                    }
-//                    continue;
-//                } else if (Objects.equals(move.toLowerCase(), "000") || Objects.equals(move.toLowerCase(), "ooo")) {
-//                    if (longCastle()) {
-//                        this.isWhite = !this.isWhite;
-//                    }
-//                    continue;
-//                }
-                Thread.yield();
-                if (!this.isPieceSelected() || !this.isPointSelected()) {
+                String move = reader.nextLine().strip();
+
+                if (move.equalsIgnoreCase("00") || move.equalsIgnoreCase("oo")) {
+                    if (this.shortCastle()) {
+                        this.isWhite = !this.isWhite;
+                    }
+                    continue;
+                } else if (move.equalsIgnoreCase("000") || move.equalsIgnoreCase("ooo")) {
+                    if (this.longCastle()) {
+                        this.isWhite = !this.isWhite;
+                    }
                     continue;
                 }
 
-                int col = this.colStart;
-                int row = this.rowStart;
-                int colDest = this.colDest;
-                int rowDest = this.rowDest;
+                this.processInputAndMove(move);
 
-                Piece piece = this.board[row][col];
-                if ((piece != null && piece.getIsWhite() == this.isWhite) &&
-                        !this.isKingAttacked(true) && !this.isKingAttacked(false)) {
-                    if (piece.move(rowDest, colDest, this.board)) {
-                        this.isWhite = !this.isWhite;
-                    }
-                } else if ((this.isKingAttacked(true) || this.isKingAttacked(false)) &&
-                        piece != null && piece.getIsWhite() == this.isWhite) {
-                    if (this.escapeCheck(piece, rowDest, colDest)) {
-                        this.isWhite = !this.isWhite;
-                    }
-                }
-
-                this.mainframe.createField(this);
-                this.mainframe.pack();
-
-                this.setPieceSelected(false);
-                this.setPointSelected(false);
-
-                String res = checkMate();
+                String res = this.checkMate();
                 if (!Objects.equals(res, "Draw")) {
-                    this.restartFrame.setEnabled(true);
-                    this.restartFrame.setVisible(true);
-                    this.restartFrame.pack();
                     System.out.println(res);
                     break;
                 }
@@ -183,15 +133,61 @@ public class Game {
         }
     }
 
+    public void displayBoard() {
+        System.out.println("\b\b\b\b\b");
+        System.out.println(Globals.outsideBoard);
+        for (int i = 0; i < this.board.length; i++) {
+            System.out.print(this.board.length - i + " ");
+            for (Piece piece : this.board[i]) {
+                if (piece != null) {
+                    System.out.print("| " + piece + " ");
+                } else {
+                    System.out.print("|    ");
+                }
+            }
+            System.out.println("|");
+            if (i != this.board.length - 1) {
+                System.out.println(Globals.insideBoard);
+            }
+        }
+        System.out.println(Globals.outsideBoard);
+        System.out.println(Globals.lettersUnderBoard);
+        System.out.print("Введите ваш ход (пример: e2 e4): ");
+    }
+
+    public void processInputAndMove(String move) {
+        String[] twoPoints = move.split(" ");
+        String startPoint = twoPoints[0];
+        String finishPoint = twoPoints[1];
+
+        this.colStart = Globals.letters.indexOf(startPoint.charAt(0));
+        this.rowStart = 8 - Integer.valueOf(startPoint.substring(1));
+        this.colDest = Globals.letters.indexOf(finishPoint.charAt(0));
+        this.rowDest = 8 - Integer.valueOf(finishPoint.substring(1));
+
+        Piece piece = this.board[this.rowStart][this.colStart];
+        if ((piece != null && piece.getIsWhite() == this.isWhite) &&
+                !this.isKingAttacked(true) && !this.isKingAttacked(false)) {
+            if (piece.move(this.rowDest, this.colDest, this.board)) {
+                this.isWhite = !this.isWhite;
+            }
+        } else if ((this.isKingAttacked(true) || this.isKingAttacked(false)) &&
+                piece != null && piece.getIsWhite() == this.isWhite) {
+            if (this.escapeCheck(piece, this.rowDest, this.colDest)) {
+                this.isWhite = !this.isWhite;
+            }
+        }
+    }
+
     public boolean shortCastle() {
         int kingRow = this.isWhite ? 7 : 0;
         if (this.board[kingRow][5] == null && this.board[kingRow][6] == null) {
             Piece rook = this.board[kingRow][7];
             Piece king = this.board[kingRow][4];
             if (rook instanceof Rook && king instanceof King) {
-                if (rook.isFirstMove && king.isFirstMove) {
-                    rook.coordinates = new int[]{kingRow, 5};
-                    king.coordinates = new int[]{kingRow, 6};
+                if (rook.isFirstMove() && king.isFirstMove()) {
+                    rook.setCoordinates(new int[]{kingRow, 5});
+                    king.setCoordinates(new int[]{kingRow, 6});
                     this.board[kingRow][4] = null;
                     this.board[kingRow][7] = null;
                     this.board[kingRow][5] = rook;
@@ -209,9 +205,9 @@ public class Game {
             Piece rook = this.board[kingRow][0];
             Piece king = this.board[kingRow][4];
             if (rook instanceof Rook && king instanceof King) {
-                if (rook.isFirstMove && king.isFirstMove) {
-                    rook.coordinates = new int[]{kingRow, 5};
-                    king.coordinates = new int[]{kingRow, 6};
+                if (rook.isFirstMove() && king.isFirstMove()) {
+                    rook.setCoordinates(new int[]{kingRow, 5});
+                    king.setCoordinates(new int[]{kingRow, 6});
                     this.board[kingRow][0] = null;
                     this.board[kingRow][4] = null;
                     this.board[kingRow][2] = king;
@@ -238,7 +234,7 @@ public class Game {
     public boolean isKingAttacked(boolean isWhite) {
         King king = this.getKings()[isWhite ? 1 : 0];
         boolean[][] attackedCells = this.getAttackedCells(!isWhite);
-        return attackedCells[king.coordinates[0]][king.coordinates[1]];
+        return attackedCells[king.getRowCoordinate()][king.getColCoordinate()];
     }
 
     public boolean escapeCheck(Piece piece, int rowDest, int colDest) {
@@ -246,14 +242,14 @@ public class Game {
             return false;
         }
 
-        int[] startPos = piece.coordinates;
+        int[] startPos = piece.getCoordinates();
         this.board[startPos[0]][startPos[1]] = null;
         this.board[rowDest][colDest] = piece;
-        piece.coordinates = new int[]{rowDest, colDest};
+        piece.setCoordinates(new int[]{rowDest, colDest});
         if (this.isKingAttacked(piece.getIsWhite())) {
             this.board[rowDest][colDest] = null;
             this.board[startPos[0]][startPos[1]] = piece;
-            piece.coordinates = startPos;
+            piece.setCoordinates(startPos);
             return false;
         }
         return true;
@@ -263,7 +259,7 @@ public class Game {
         King king = this.getKings()[isWhite ? 1 : 0];
         boolean[][] kingMoves = king.getPossibleMoves(this.board);
         boolean[][] attackedCells;
-        int[] startKingPosition = king.coordinates;
+        int[] startKingPosition = king.getCoordinates();
 
         if (!this.isKingAttacked(isWhite)) {
             return false;
@@ -271,21 +267,22 @@ public class Game {
         for (Piece[] pieces : this.board) {
             for (Piece piece : pieces) {
                 if (piece != null && piece.getIsWhite() == isWhite) {
-                    int[] startPos = piece.coordinates;
+                    int[] startPos = piece.getCoordinates();
                     boolean[][] possibleMoves = piece.getPossibleMoves(this.board);
-                    for (int i = 0; i < possibleMoves.length; i++) {
-                        for (int j = 0; j < possibleMoves.length; j++) {
-                            if (possibleMoves[i][j]) {
+                    for (int row = 0; row < possibleMoves.length; row++) {
+                        for (int col = 0; col < possibleMoves.length; col++) {
+                            if (possibleMoves[row][col]) {
                                 this.board[startPos[0]][startPos[1]] = null;
-                                Piece curPiece = this.board[i][j];
+                                Piece curPiece = this.board[row][col];
+                                this.board[row][col] = piece;
 
-                                if (!this.getAttackedCells(!isWhite)[king.coordinates[0]][king.coordinates[1]]) {
+                                if (!this.getAttackedCells(!isWhite)[king.getRowCoordinate()][king.getColCoordinate()]) {
                                     this.board[startPos[0]][startPos[1]] = piece;
-                                    this.board[i][j] = curPiece;
+                                    this.board[row][col] = curPiece;
                                     return false;
                                 }
                                 this.board[startPos[0]][startPos[1]] = piece;
-                                this.board[i][j] = curPiece;
+                                this.board[row][col] = curPiece;
                             }
                         }
                     }
@@ -299,8 +296,8 @@ public class Game {
                     continue;
                 }
 
-                int[] curKingCoordinates = king.coordinates;
-                king.coordinates = new int[]{i, j};
+                int[] curKingCoordinates = king.getCoordinates();
+                king.setCoordinates(new int[]{i, j});
                 this.board[i][j] = king;
                 this.board[curKingCoordinates[0]][curKingCoordinates[1]] = null;
                 attackedCells = this.getAttackedCells(!isWhite);

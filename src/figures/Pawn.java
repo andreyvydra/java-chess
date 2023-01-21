@@ -5,11 +5,10 @@ import figures.basic.Piece;
 
 
 public class Pawn extends Piece {
-    int longMoveY = 2;
 
     public Pawn(int[] coordinates, boolean isWhite) {
         super(coordinates, isWhite);
-        this.letterPiece = "P";
+        this.setLetterPiece("P");
     }
 
     public boolean[][] getPossibleMoves(Piece[][] board) {
@@ -31,15 +30,16 @@ public class Pawn extends Piece {
         int coefficientColor = this.getColorCoefficient();
 
         // Проверка на отсутствие фигуры и первого хода
-        int rowDest = this.coordinates[0] + this.longMoveY * coefficientColor;
-        int colDest = this.coordinates[1];
+        int longMoveY = 2;
+        int rowDest = this.getRowCoordinate() + longMoveY * coefficientColor;
+        int colDest = this.getColCoordinate();
         Piece piece = board[rowDest][colDest];
         Piece piece1 = board[rowDest - coefficientColor][colDest];
-        if (this.isFirstMove && piece == null && piece1 == null) {
+        if (this.isFirstMove() && piece == null && piece1 == null) {
             moves[rowDest][colDest] = true;
         }
 
-        rowDest = this.coordinates[0] + coefficientColor; // rowDest остается таким же
+        rowDest = this.getRowCoordinate() + coefficientColor; // colDest остается таким же
         piece = board[rowDest][colDest];
         if (piece == null) {
             moves[rowDest][colDest] = true;
@@ -49,15 +49,16 @@ public class Pawn extends Piece {
     }
 
     public boolean[][] getEatMoves(Piece[][] board) {
-        boolean[][] moves = new boolean[board.length][board[0].length]; // Только 2 хода, чтобы съесть
+        boolean[][] moves = new boolean[board.length][board[0].length];
         int coefficientColor = this.getColorCoefficient();
 
-        int row = this.coordinates[0];
-        int col = this.coordinates[1];
+        int row = this.getRowCoordinate();
+        int col = this.getColCoordinate();
 
         int rowDest = row + coefficientColor;
         int colDest = col + coefficientColor;
-        if (rowDest >= 0 && rowDest <= 7 && colDest >= 0 && colDest <= 7) {
+
+        if (!this.outOfBoardLimits(rowDest, colDest)) {
             Piece piece = board[rowDest][colDest];
             if (piece != null && piece.getIsWhite() != this.getIsWhite()) {
                moves[rowDest][colDest] = true;
@@ -65,7 +66,7 @@ public class Pawn extends Piece {
         }
 
         colDest = col - coefficientColor;
-        if (rowDest >= 0 && rowDest <= 7 && colDest >= 0 && colDest <= 7) {
+        if (!this.outOfBoardLimits(rowDest, colDest)) {
             Piece piece = board[rowDest][colDest];
             if (piece != null && piece.getIsWhite() != this.getIsWhite()) {
                 moves[rowDest][colDest] = true;
@@ -78,13 +79,13 @@ public class Pawn extends Piece {
         boolean[][] moves = new boolean[board.length][board[0].length]; // Только 2 хода, чтобы съесть
         int coefficientColor = this.getColorCoefficient();
 
-        int row = this.coordinates[0];
-        int col = this.coordinates[1];
+        int row = this.getRowCoordinate();
+        int col = this.getColCoordinate();
 
         int rowDest = row + coefficientColor;
         int colDest = col + coefficientColor;
 
-        if (rowDest >= 0 && rowDest <= 7 && colDest >= 0 && colDest <= 7) {
+        if (!this.outOfBoardLimits(rowDest, colDest)) {
             Piece piece = board[rowDest][colDest];
             if (piece == null) {
                 moves[rowDest][colDest] = true;
@@ -92,7 +93,7 @@ public class Pawn extends Piece {
         }
 
         colDest = col - coefficientColor;
-        if (rowDest >= 0 && rowDest <= 7 && colDest >= 0 && colDest <= 7) {
+        if (!this.outOfBoardLimits(rowDest, colDest)) {
             Piece piece = board[rowDest][colDest];
             if (piece == null) {
                 moves[rowDest][colDest] = true;

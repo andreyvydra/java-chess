@@ -8,12 +8,13 @@ public class DirectionMovingPiece extends Piece {
         this.directions = directions;
     }
 
+    @Override
     public boolean[][] getPossibleMoves(Piece[][] board) {
         boolean[][] possibleMoves = new boolean[board.length][board[0].length];
         for (int[] direction : this.directions) {
             for (int j = 1; j <= 8; j++) {
-                int row = this.coordinates[0] + direction[0] * j;
-                int col = this.coordinates[1] + direction[1] * j;
+                int row = this.getRowCoordinate() + direction[0] * j;
+                int col = this.getColCoordinate() + direction[1] * j;
 
                 if (this.outOfBoardLimits(row, col)) {
                     break;

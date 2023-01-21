@@ -2,15 +2,47 @@ package figures.basic;
 
 public abstract class Piece implements PieceInterface {
     private final boolean isWhite;
-    public boolean isFirstMove;
-    public int[] coordinates;
-    public String letterPiece;
+    private boolean isFirstMove;
+    private int[] coordinates;
+    private String letterPiece;
 
 
     public Piece (int[] coordinates, boolean isWhite) {
         this.coordinates = coordinates;
         this.isWhite = isWhite;
         this.isFirstMove = true;
+    }
+
+    public void setLetterPiece(String letterPiece) {
+        this.letterPiece = letterPiece;
+    }
+
+    public void setFirstMove(boolean firstMove) {
+        isFirstMove = firstMove;
+    }
+
+    public void setCoordinates(int[] coordinates) {
+        this.coordinates = coordinates;
+    }
+
+    public int[] getCoordinates() {
+        return coordinates;
+    }
+
+    public int getRowCoordinate() {
+        return coordinates[0];
+    }
+
+    public int getColCoordinate() {
+        return coordinates[1];
+    }
+
+    public boolean isFirstMove() {
+        return isFirstMove;
+    }
+
+    public String getLetterPiece() {
+        return letterPiece;
     }
 
     @Override

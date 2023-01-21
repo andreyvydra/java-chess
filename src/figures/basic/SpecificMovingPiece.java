@@ -1,7 +1,7 @@
 package figures.basic;
 
 public class SpecificMovingPiece extends Piece {
-    public int[][] moves;
+    private final int[][] moves;
 
     public SpecificMovingPiece(int[] coordinates, boolean isWhite, int[][] moves) {
         super(coordinates, isWhite);
@@ -12,8 +12,8 @@ public class SpecificMovingPiece extends Piece {
     public boolean[][] getPossibleMoves(Piece[][] board) {
         boolean[][] possibleMoves = new boolean[board.length][board[0].length];
         for (int[] direction : this.moves) {
-            int row = this.coordinates[0] + direction[0];
-            int col = this.coordinates[1] + direction[1];
+            int row = this.getRowCoordinate() + direction[0];
+            int col = this.getColCoordinate() + direction[1];
             if (this.outOfBoardLimits(row, col)) {
                 continue;
             }

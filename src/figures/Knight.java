@@ -6,7 +6,7 @@ public class Knight extends SpecificMovingPiece {
     public Knight(int[] coordinates, boolean isWhite) {
         super(coordinates, isWhite, new int[][]{{2, 1}, {-2, 1}, {2, -1}, {-2, -1},
                 {1, 2}, {-1, 2}, {1, -2}, {-1, -2}});
-        this.letterPiece = "N";
+        this.setLetterPiece("N");
     }
 
 }
