@@ -60,7 +60,7 @@ public class Pawn extends Piece {
 
         if (!this.outOfBoardLimits(rowDest, colDest)) {
             Piece piece = board[rowDest][colDest];
-            if (piece != null && piece.getIsWhite() != this.getIsWhite()) {
+            if (piece != null && piece.isWhite() != this.isWhite()) {
                moves[rowDest][colDest] = true;
             }
         }
@@ -68,7 +68,7 @@ public class Pawn extends Piece {
         colDest = col - coefficientColor;
         if (!this.outOfBoardLimits(rowDest, colDest)) {
             Piece piece = board[rowDest][colDest];
-            if (piece != null && piece.getIsWhite() != this.getIsWhite()) {
+            if (piece != null && piece.isWhite() != this.isWhite()) {
                 moves[rowDest][colDest] = true;
             }
         }
@@ -104,7 +104,7 @@ public class Pawn extends Piece {
 
     public int getColorCoefficient() {
         int coefficientColor;
-        if (this.getIsWhite()) {
+        if (this.isWhite()) {
             coefficientColor = -1;
         } else {
             coefficientColor = 1;

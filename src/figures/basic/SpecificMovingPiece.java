@@ -20,7 +20,7 @@ public class SpecificMovingPiece extends Piece {
 
             if (board[row][col] == null) {
                 possibleMoves[row][col] = true;
-            } else if (board[row][col].getIsWhite() != this.getIsWhite()) {
+            } else if (board[row][col].isWhite() != this.isWhite()) {
                 possibleMoves[row][col] = true;
             }
         }

@@ -48,7 +48,7 @@ public abstract class Piece implements PieceInterface {
     @Override
     public String toString() {
         String color;
-        if (this.getIsWhite()) {
+        if (this.isWhite()) {
             color = "w";
         } else {
             color = "b";
@@ -56,7 +56,7 @@ public abstract class Piece implements PieceInterface {
         return color + this.letterPiece;
     }
 
-    public boolean getIsWhite() {
+    public boolean isWhite() {
         return this.isWhite;
     }
 

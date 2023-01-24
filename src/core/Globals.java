@@ -34,4 +34,5 @@ N - конь
     public static String outsideBoard = "  +---------------------------------------+"; // Отступ слева для выравнивания
     public static String insideBoard = "  |---------------------------------------|"; // Отступ слева для выравнивания
     public static String lettersUnderBoard = "    A    B    C    D    E    F    G    H";
+
 }

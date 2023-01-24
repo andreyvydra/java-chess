@@ -6,7 +6,7 @@ import java.util.*;
 
 public class Game {
     private boolean isWhite = true;
-    private Piece[][] board;
+    private Board board;
     private int colStart;
     private int rowStart;
     private int colDest;
@@ -14,11 +14,11 @@ public class Game {
 
 
     public Game() {
-        this.buildBoard();
+        this.board = new Board();
     }
 
-    public Piece[][] getBoard() {
-        return board;
+    public Board getBoard() {
+        return this.board;
     }
 
     public int getColStart() {
@@ -54,48 +54,8 @@ public class Game {
     }
 
     public void start(Object e) {
-        this.buildBoard();
-        System.out.println(Arrays.deepToString(this.board));
         this.isWhite = true;
         this.mainLoop();
-    }
-
-    public void buildBoard() {
-        String[][] field = Globals.standardField.clone();
-        this.board = new Piece[8][8];
-
-        for (int i = 0; i < field.length; i++) {
-            for (int j = 0; j < field[0].length; j++) {
-                if (field[i][j].equals("")) {
-                    continue;
-                }
-                int[] coordinates = {i, j};
-                char color = field[i][j].charAt(0);
-                char piece = field[i][j].charAt(1);
-
-                boolean isWhite = color == 'w';
-
-                if (piece == 'P') {
-                    Pawn pawn = new Pawn(coordinates, isWhite);
-                    this.board[i][j] = pawn;
-                } else if (piece == 'R') {
-                    Rook rook = new Rook(coordinates, isWhite);
-                    this.board[i][j] = rook;
-                } else if (piece == 'B') {
-                    Bishop bishop = new Bishop(coordinates, isWhite);
-                    this.board[i][j] = bishop;
-                } else if (piece == 'N') {
-                    Knight knight = new Knight(coordinates, isWhite);
-                    this.board[i][j] = knight;
-                } else if (piece == 'Q') {
-                    Queen queen = new Queen(coordinates, isWhite);
-                    this.board[i][j] = queen;
-                } else if (piece == 'K') {
-                    King king = new King(coordinates, isWhite);
-                    this.board[i][j] = king;
-                }
-            }
-        }
     }
 
     public void mainLoop() {
@@ -103,19 +63,11 @@ public class Game {
 
         while (true) {
             try {
-                this.displayBoard();
+                this.board.display();
 
                 String move = reader.nextLine().strip();
 
-                if (move.equalsIgnoreCase("00") || move.equalsIgnoreCase("oo")) {
-                    if (this.shortCastle()) {
-                        this.isWhite = !this.isWhite;
-                    }
-                    continue;
-                } else if (move.equalsIgnoreCase("000") || move.equalsIgnoreCase("ooo")) {
-                    if (this.longCastle()) {
-                        this.isWhite = !this.isWhite;
-                    }
+                if (this.castling(move)) {
                     continue;
                 }
 
@@ -128,31 +80,9 @@ public class Game {
                 }
 
             } catch (Exception exc) {
-                System.out.println(Globals.incorrectInput);
+                System.out.println(exc);
             }
         }
-    }
-
-    public void displayBoard() {
-        System.out.println("\b\b\b\b\b");
-        System.out.println(Globals.outsideBoard);
-        for (int i = 0; i < this.board.length; i++) {
-            System.out.print(this.board.length - i + " ");
-            for (Piece piece : this.board[i]) {
-                if (piece != null) {
-                    System.out.print("| " + piece + " ");
-                } else {
-                    System.out.print("|    ");
-                }
-            }
-            System.out.println("|");
-            if (i != this.board.length - 1) {
-                System.out.println(Globals.insideBoard);
-            }
-        }
-        System.out.println(Globals.outsideBoard);
-        System.out.println(Globals.lettersUnderBoard);
-        System.out.print("Введите ваш ход (пример: e2 e4): ");
     }
 
     public void processInputAndMove(String move) {
@@ -165,33 +95,42 @@ public class Game {
         this.colDest = Globals.letters.indexOf(finishPoint.charAt(0));
         this.rowDest = 8 - Integer.valueOf(finishPoint.substring(1));
 
-        Piece piece = this.board[this.rowStart][this.colStart];
-        if ((piece != null && piece.getIsWhite() == this.isWhite) &&
+        Piece piece = this.board.getPiece(this.rowStart, this.colStart);
+        if ((piece != null && piece.isWhite() == this.isWhite) &&
                 !this.isKingAttacked(true) && !this.isKingAttacked(false)) {
-            if (piece.move(this.rowDest, this.colDest, this.board)) {
+            if (piece.move(this.rowDest, this.colDest, this.board.getBoard())) {
                 this.isWhite = !this.isWhite;
             }
         } else if ((this.isKingAttacked(true) || this.isKingAttacked(false)) &&
-                piece != null && piece.getIsWhite() == this.isWhite) {
+                piece != null && piece.isWhite() == this.isWhite) {
             if (this.escapeCheck(piece, this.rowDest, this.colDest)) {
                 this.isWhite = !this.isWhite;
             }
         }
     }
 
+    public boolean castling(String move) {
+        return (this.checkLongCastling(move) && this.longCastle()) ||
+                (this.checkShortCastling(move) && this.shortCastle());
+    }
+
+    public boolean checkShortCastling(String move) {
+        return move.equalsIgnoreCase("00") || move.equalsIgnoreCase("oo");
+    }
+
+    public boolean checkLongCastling(String move) {
+        return move.equalsIgnoreCase("000") || move.equalsIgnoreCase("ooo");
+    }
+
     public boolean shortCastle() {
         int kingRow = this.isWhite ? 7 : 0;
-        if (this.board[kingRow][5] == null && this.board[kingRow][6] == null) {
-            Piece rook = this.board[kingRow][7];
-            Piece king = this.board[kingRow][4];
+        if (this.board.getPiece(kingRow, 5) == null && this.board.getPiece(kingRow, 6) == null) {
+            Piece rook = this.board.getPiece(kingRow, 7);
+            Piece king = this.board.getPiece(kingRow, 4);
             if (rook instanceof Rook && king instanceof King) {
                 if (rook.isFirstMove() && king.isFirstMove()) {
-                    rook.setCoordinates(new int[]{kingRow, 5});
-                    king.setCoordinates(new int[]{kingRow, 6});
-                    this.board[kingRow][4] = null;
-                    this.board[kingRow][7] = null;
-                    this.board[kingRow][5] = rook;
-                    this.board[kingRow][6] = king;
+                    this.board.movePiece(rook, kingRow, 5);
+                    this.board.movePiece(king, kingRow, 6);
                     return true;
                 }
             }
@@ -201,17 +140,15 @@ public class Game {
 
     public boolean longCastle() {
         int kingRow = this.isWhite ? 7 : 0;
-        if (this.board[kingRow][1] == null && this.board[kingRow][2] == null && this.board[kingRow][3] == null) {
-            Piece rook = this.board[kingRow][0];
-            Piece king = this.board[kingRow][4];
+        if (this.board.getPiece(kingRow, 1) == null &&
+                this.board.getPiece(kingRow, 2) == null &&
+                this.board.getPiece(kingRow, 3) == null) {
+            Piece rook = this.board.getPiece(kingRow, 0);
+            Piece king = this.board.getPiece(kingRow, 4);
             if (rook instanceof Rook && king instanceof King) {
                 if (rook.isFirstMove() && king.isFirstMove()) {
-                    rook.setCoordinates(new int[]{kingRow, 5});
-                    king.setCoordinates(new int[]{kingRow, 6});
-                    this.board[kingRow][0] = null;
-                    this.board[kingRow][4] = null;
-                    this.board[kingRow][2] = king;
-                    this.board[kingRow][3] = rook;
+                    this.board.movePiece(king, kingRow, 2);
+                    this.board.movePiece(rook, kingRow, 3);
                     return true;
                 }
             }
@@ -232,57 +169,62 @@ public class Game {
     }
 
     public boolean isKingAttacked(boolean isWhite) {
-        King king = this.getKings()[isWhite ? 1 : 0];
+        King king = this.board.getKing(isWhite);
         boolean[][] attackedCells = this.getAttackedCells(!isWhite);
         return attackedCells[king.getRowCoordinate()][king.getColCoordinate()];
     }
 
     public boolean escapeCheck(Piece piece, int rowDest, int colDest) {
-        if (!piece.getPossibleMoves(this.board)[rowDest][colDest]) {
+        if (!piece.getPossibleMoves(this.board.getBoard())[rowDest][colDest]) {
             return false;
         }
 
-        int[] startPos = piece.getCoordinates();
-        this.board[startPos[0]][startPos[1]] = null;
-        this.board[rowDest][colDest] = piece;
-        piece.setCoordinates(new int[]{rowDest, colDest});
-        if (this.isKingAttacked(piece.getIsWhite())) {
-            this.board[rowDest][colDest] = null;
-            this.board[startPos[0]][startPos[1]] = piece;
-            piece.setCoordinates(startPos);
+        int startRow = piece.getRowCoordinate();
+        int startCol = piece.getColCoordinate();
+        this.board.movePiece(piece, rowDest, colDest);
+        if (this.isKingAttacked(piece.isWhite())) {
+            this.board.movePiece(piece, startRow, startCol);
             return false;
         }
         return true;
     }
 
     public boolean isMateForKing(boolean isWhite) {
-        King king = this.getKings()[isWhite ? 1 : 0];
-        boolean[][] kingMoves = king.getPossibleMoves(this.board);
+
+        // Логика по проверке на защиту другими фигурами, yes
+        King king = this.board.getKing(isWhite);
+        boolean[][] kingMoves = king.getPossibleMoves(this.board.getBoard());
         boolean[][] attackedCells;
         int[] startKingPosition = king.getCoordinates();
 
         if (!this.isKingAttacked(isWhite)) {
             return false;
         }
-        for (Piece[] pieces : this.board) {
+        for (Piece[] pieces : this.board.getBoard()) {
             for (Piece piece : pieces) {
-                if (piece != null && piece.getIsWhite() == isWhite) {
+                if (piece != null && piece.isWhite() == isWhite) {
                     int[] startPos = piece.getCoordinates();
-                    boolean[][] possibleMoves = piece.getPossibleMoves(this.board);
+                    boolean[][] possibleMoves = piece.getPossibleMoves(this.board.getBoard());
                     for (int row = 0; row < possibleMoves.length; row++) {
                         for (int col = 0; col < possibleMoves.length; col++) {
                             if (possibleMoves[row][col]) {
-                                this.board[startPos[0]][startPos[1]] = null;
-                                Piece curPiece = this.board[row][col];
-                                this.board[row][col] = piece;
+                                Piece curPiece = this.board.getPiece(row, col);
+                                this.board.movePiece(piece, row, col);
+                                // Problem: movePiece changing the pos which is he staying in
 
                                 if (!this.getAttackedCells(!isWhite)[king.getRowCoordinate()][king.getColCoordinate()]) {
-                                    this.board[startPos[0]][startPos[1]] = piece;
-                                    this.board[row][col] = curPiece;
+                                    this.board.movePiece(piece, startPos[0], startPos[1]);
+                                    if (curPiece != null) {
+                                        curPiece.setCoordinates(new int[]{row, col});
+                                        this.board.setPiece(curPiece, row, col);
+                                    }
                                     return false;
                                 }
-                                this.board[startPos[0]][startPos[1]] = piece;
-                                this.board[row][col] = curPiece;
+                                this.board.movePiece(piece, startPos[0], startPos[1]);
+                                if (curPiece != null) {
+                                    curPiece.setCoordinates(new int[]{row, col});
+                                    this.board.setPiece(curPiece, row, col);
+                                }
                             }
                         }
                     }
@@ -290,6 +232,8 @@ public class Game {
             }
         }
 
+
+        // Проверка ходов королём
         for (int i = 0; i < kingMoves.length; i++) {
             for (int j = 0; j < kingMoves[0].length; j++) {
                 if (!kingMoves[i][j]) {
@@ -298,13 +242,13 @@ public class Game {
 
                 int[] curKingCoordinates = king.getCoordinates();
                 king.setCoordinates(new int[]{i, j});
-                this.board[i][j] = king;
-                this.board[curKingCoordinates[0]][curKingCoordinates[1]] = null;
+                this.board.getBoard()[i][j] = king;
+                this.board.getBoard()[curKingCoordinates[0]][curKingCoordinates[1]] = null;
                 attackedCells = this.getAttackedCells(!isWhite);
 
                 if (!attackedCells[i][j]) {
-                    this.board[startKingPosition[0]][startKingPosition[1]] = king;
-                    this.board[i][j] = null;
+                    this.board.getBoard()[startKingPosition[0]][startKingPosition[1]] = king;
+                    this.board.getBoard()[i][j] = null;
                     return false;
                 }
             }
@@ -314,13 +258,13 @@ public class Game {
     }
 
     public boolean[][] getAttackedCells(boolean isWhite) {
-        boolean[][] attackedCells = new boolean[this.board.length][this.board[0].length];
-        for (Piece[] row : this.board) {
+        boolean[][] attackedCells = new boolean[this.board.getBoard().length][this.board.getBoard()[0].length];
+        for (Piece[] row : this.board.getBoard()) {
             for (Piece piece : row) {
-                if (piece != null && piece.getIsWhite() == isWhite) {
-                    boolean[][] possibleMoves = piece.getPossibleMoves(this.board);
+                if (piece != null && piece.isWhite() == isWhite) {
+                    boolean[][] possibleMoves = piece.getPossibleMoves(this.board.getBoard());
                     if (piece instanceof Pawn) { // Pawn может атаковать только клетки, которые она съедает
-                        boolean[][] pawnMoves = ((Pawn) piece).getPredictableEatMoves(this.board);
+                        boolean[][] pawnMoves = ((Pawn) piece).getPredictableEatMoves(this.board.getBoard());
                         for (int i = 0; i < possibleMoves.length; i++) {
                             System.arraycopy(pawnMoves[i], 0, possibleMoves[i], 0, possibleMoves[0].length);
                         }
@@ -337,22 +281,5 @@ public class Game {
             }
         }
         return attackedCells;
-    }
-
-    public King[] getKings() {
-        King whiteKing = new King(new int[]{}, true);
-        King blackKing = new King(new int[]{}, false);
-        for (Piece[] line : this.board) {
-            for (Piece piece : line) {
-                if (piece instanceof King) {
-                    if (piece.getIsWhite()) {
-                        whiteKing = (King) piece;
-                    } else {
-                        blackKing = (King) piece;
-                    }
-                }
-            }
-        }
-        return new King[]{blackKing, whiteKing};
     }
 }
