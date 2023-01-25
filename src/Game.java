@@ -67,7 +67,7 @@ public class Game {
 
                 String move = reader.nextLine().strip();
 
-                if (this.castling(move)) {
+                if (this.castling(move) && !this.isKingAttacked(this.isWhite)) {
                     continue;
                 }
 
@@ -131,7 +131,7 @@ public class Game {
             Piece rook = this.board.getPiece(kingRow, 7);
             Piece king = this.board.getPiece(kingRow, 4);
             if (rook instanceof Rook && king instanceof King) {
-                if (rook.isFirstMove() && king.isFirstMove()) {
+                if (rook.isFirstMove() && king.isFirstMove() && !this.checkKingAttackedAfterMove(king, kingRow, 6)) {
                     this.board.movePiece(rook, kingRow, 5);
                     this.board.movePiece(king, kingRow, 6);
                     return true;
@@ -149,7 +149,7 @@ public class Game {
             Piece rook = this.board.getPiece(kingRow, 0);
             Piece king = this.board.getPiece(kingRow, 4);
             if (rook instanceof Rook && king instanceof King) {
-                if (rook.isFirstMove() && king.isFirstMove()) {
+                if (rook.isFirstMove() && king.isFirstMove() && !this.checkKingAttackedAfterMove(king, kingRow, 2)) {
                     this.board.movePiece(king, kingRow, 2);
                     this.board.movePiece(rook, kingRow, 3);
                     return true;
