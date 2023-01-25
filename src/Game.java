@@ -98,12 +98,15 @@ public class Game {
         Piece piece = this.board.getPiece(this.rowStart, this.colStart);
         if ((piece != null && piece.isWhite() == this.isWhite) &&
                 !this.isKingAttacked(true) && !this.isKingAttacked(false)) {
-            if (piece.move(this.rowDest, this.colDest, this.board.getBoard())) {
-                this.isWhite = !this.isWhite;
+            if (!this.checkKingAttackedAfterMove(piece, this.rowDest, this.colDest)) {
+                if (piece.move(this.rowDest, this.colDest, this.board.getBoard())) {
+                    this.isWhite = !this.isWhite;
+                }
             }
         } else if ((this.isKingAttacked(true) || this.isKingAttacked(false)) &&
                 piece != null && piece.isWhite() == this.isWhite) {
             if (this.escapeCheck(piece, this.rowDest, this.colDest)) {
+                this.board.movePiece(piece, this.rowDest, this.colDest);
                 this.isWhite = !this.isWhite;
             }
         }
@@ -179,51 +182,35 @@ public class Game {
             return false;
         }
 
-        int startRow = piece.getRowCoordinate();
-        int startCol = piece.getColCoordinate();
-        this.board.movePiece(piece, rowDest, colDest);
-        if (this.isKingAttacked(piece.isWhite())) {
-            this.board.movePiece(piece, startRow, startCol);
-            return false;
-        }
-        return true;
+        return !this.checkKingAttackedAfterMove(piece, rowDest, colDest);
     }
 
     public boolean isMateForKing(boolean isWhite) {
 
         // Логика по проверке на защиту другими фигурами, yes
         King king = this.board.getKing(isWhite);
-        boolean[][] kingMoves = king.getPossibleMoves(this.board.getBoard());
-        boolean[][] attackedCells;
-        int[] startKingPosition = king.getCoordinates();
 
         if (!this.isKingAttacked(isWhite)) {
             return false;
         }
+        if (checkPieceDefenseForKing(isWhite)) {
+            return false;
+        }
+
+        // Проверка ходов короля, если он может уйти, то уходит
+        return !checkKingRetreat(king);
+    }
+
+    public boolean checkPieceDefenseForKing(boolean isWhite) {
         for (Piece[] pieces : this.board.getBoard()) {
             for (Piece piece : pieces) {
                 if (piece != null && piece.isWhite() == isWhite) {
-                    int[] startPos = piece.getCoordinates();
                     boolean[][] possibleMoves = piece.getPossibleMoves(this.board.getBoard());
                     for (int row = 0; row < possibleMoves.length; row++) {
                         for (int col = 0; col < possibleMoves.length; col++) {
                             if (possibleMoves[row][col]) {
-                                Piece curPiece = this.board.getPiece(row, col);
-                                this.board.movePiece(piece, row, col);
-                                // Problem: movePiece changing the pos which is he staying in
-
-                                if (!this.getAttackedCells(!isWhite)[king.getRowCoordinate()][king.getColCoordinate()]) {
-                                    this.board.movePiece(piece, startPos[0], startPos[1]);
-                                    if (curPiece != null) {
-                                        curPiece.setCoordinates(new int[]{row, col});
-                                        this.board.setPiece(curPiece, row, col);
-                                    }
-                                    return false;
-                                }
-                                this.board.movePiece(piece, startPos[0], startPos[1]);
-                                if (curPiece != null) {
-                                    curPiece.setCoordinates(new int[]{row, col});
-                                    this.board.setPiece(curPiece, row, col);
+                                if (!this.checkKingAttackedAfterMove(piece, row, col)) {
+                                    return true;
                                 }
                             }
                         }
@@ -231,29 +218,41 @@ public class Game {
                 }
             }
         }
+        return false;
+    }
 
-
-        // Проверка ходов королём
-        for (int i = 0; i < kingMoves.length; i++) {
-            for (int j = 0; j < kingMoves[0].length; j++) {
-                if (!kingMoves[i][j]) {
+    public boolean checkKingRetreat(King king) {
+        boolean[][] kingMoves = king.getPossibleMoves(this.board.getBoard());
+        for (int row = 0; row < kingMoves.length; row++) {
+            for (int col = 0; col < kingMoves[0].length; col++) {
+                if (!kingMoves[row][col]) {
                     continue;
                 }
 
-                int[] curKingCoordinates = king.getCoordinates();
-                king.setCoordinates(new int[]{i, j});
-                this.board.getBoard()[i][j] = king;
-                this.board.getBoard()[curKingCoordinates[0]][curKingCoordinates[1]] = null;
-                attackedCells = this.getAttackedCells(!isWhite);
-
-                if (!attackedCells[i][j]) {
-                    this.board.getBoard()[startKingPosition[0]][startKingPosition[1]] = king;
-                    this.board.getBoard()[i][j] = null;
-                    return false;
+                if (!this.checkKingAttackedAfterMove(king, row, col)) {
+                    return true;
                 }
             }
         }
 
+        return false;
+    }
+
+    public boolean checkKingAttackedAfterMove(Piece piece, int row, int col) {
+        Piece curPiece = this.board.getPiece(row, col);
+        int colPiece = piece.getColCoordinate();
+        int rowPiece = piece.getRowCoordinate();
+        this.board.setPiece(piece, row, col);
+
+        if (!this.isKingAttacked(piece.isWhite())) {
+            System.out.println(piece.getColCoordinate());
+            this.board.setPiece(piece, rowPiece, colPiece);
+            this.board.setPiece(curPiece, row, col);
+            return false;
+        }
+
+        this.board.setPiece(piece, rowPiece, colPiece);
+        this.board.setPiece(curPiece, row, col);
         return true;
     }
 

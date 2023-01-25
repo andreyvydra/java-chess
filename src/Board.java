@@ -41,6 +41,9 @@ public class Board {
 
     public void setPiece(Piece piece, int row, int col) {
         this.board[row][col] = piece;
+        if (piece != null) {
+            piece.setCoordinates(new int[]{row, col});
+        }
     }
 
     public void build() {
